@@ -16,6 +16,8 @@ checkAuth : async()=>{
     try {
         const res = await axiosInstance.get("/auth/user")
         set({authUser : res.data})
+        console.log(res.data);
+        
         get().connectSocket();
     } catch (error) {
         console.log(error)
@@ -84,13 +86,16 @@ updateProfilePic :async(data)=>{
     }
 },
 connectSocket: async () => {
-    const { authUser } = get();
-    if(!authUser || get().socket?.connected) return;
-    const socket = io(BASE_URL,{
-        query : {
-            userId :authUser.user._id,
-        }
-    });
+        const { authUser } = get();
+        
+        // Ensure authUser is valid
+        if (!authUser || !authUser.user || get().socket?.connected) return;
+    
+        const socket = io(BASE_URL, {
+            query: {
+                userId: authUser.user._id, // ✅ Now safe
+            }
+        });
     socket.on("connect")
     set({ socket });
     socket.on("getOnlineUsers", (userIds) => {
